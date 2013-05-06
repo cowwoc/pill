@@ -1,0 +1,14 @@
+syntax: glob
+*.class
+core/build/
+core/database/build/
+core/database/dist/
+core/dist/
+examples/pill/build/
+core/lib/
+examples/dist/
+examples/pill/lib/
+examples/pill/dist/
+examples/build/
+*/nbproject/private/*
+examples/pill/target/

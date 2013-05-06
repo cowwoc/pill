@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- (If you delete it and reopen the project it will be recreated.) -->
+<!-- By default, only the Clean and Build commands use this build script. -->
+<!-- Commands such as Run, Debug, and Test only use this build script if -->
+<!-- the Compile on Save feature is turned off for the project. -->
+<!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
+<!-- in the project's Project Properties dialog box.-->
+<project name="pill.core" default="default" basedir="."
+				 xmlns:flyway="antlib:com.googlecode.flyway.ant"
+				 xmlns:querydsl="antlib:com.mysema.query.sql.ant">
+	<description>Builds, tests, and runs the project pill.core.</description>
+	<import file="nbproject/testng-impl.xml"/>
+	<import file="nbproject/build-impl.xml"/>
+
+	<target name="-pre-compile">
+		<taskdef uri="antlib:com.googlecode.flyway.ant" resource="com/googlecode/flyway/ant/antlib.xml">
+			<classpath>
+				<pathelement location="lib/flyway/flyway-ant-2.1.1.jar"/>
+				<pathelement location="lib/flyway/flyway-core-2.1.1.jar"/>
+				<pathelement location="lib/h2/h2-1.3.171.jar"/>
+				<pathelement location="src"/>
+			</classpath>
+		</taskdef>
+
+		<taskdef uri="antlib:com.mysema.query.sql.ant"
+						 name="export"
+						 classname="com.mysema.query.sql.ant.AntMetaDataExporter">
+			<classpath>
+				<pathelement location="lib/querydsl-sql/asm-3.3.1.jar"/>
+				<pathelement location="lib/querydsl-sql/cglib-2.2.2.jar"/>
+				<pathelement location="lib/querydsl-sql/mysema-commons-lang-0.2.4.jar"/>
+				<pathelement location="lib/querydsl-sql/querydsl-core-3.1.1.jar"/>
+				<pathelement location="lib/querydsl-sql/querydsl-sql-3.1.1.jar"/>
+				<pathelement location="lib/querydsl-sql/validation-api-1.0.0.GA.jar"/>
+				<pathelement location="lib/querydsl-sql/codegen-0.5.9.jar"/>
+				<pathelement location="lib/querydsl-sql/querydsl-codegen-3.1.1.jar"/>
+				<pathelement location="lib/querydsl-sql/querydsl-sql-codegen-3.1.1.jar"/>
+				<pathelement location="lib/guava/guava-14.0.1.jar"/>
+				<pathelement location="lib/slf4j/slf4j-api-1.7.5.jar"/>
+				<pathelement location="lib/logback/logback-classic-1.0.12.jar"/>
+				<pathelement location="lib/logback/logback-core-1.0.12.jar"/>
+				<pathelement location="lib/guice/javax.inject.jar"/>
+				<pathelement location="lib/h2/h2-1.3.171.jar"/>
+				<pathelement location="src"/>
+			</classpath>
+		</taskdef>
+
+		<property name="absolute.build.dir" location="${build.dir}"/>
+		<flyway:migrate driver="org.h2.Driver" url="jdbc:h2:${absolute.build.dir}/pill;TRACE_LEVEL_FILE=4"
+		  user="sa" password="sa">
+				<locations>
+						<location path="org/pill/database/migration"/>
+				</locations>
+		</flyway:migrate>
+
+		<querydsl:export jdbcDriverClass="org.h2.Driver"
+										 dbUrl="jdbc:h2:${absolute.build.dir}/pill;TRACE_LEVEL_FILE=4"
+										 dbUserName="sa" dbPassword="sa" namePrefix="Q"
+										 targetPackage="org.pill.repository.local.queries"
+										 targetSourceFolder="${absolute.build.dir}/generated-sources/java"/>
+	</target>
+
+<!--	<target name="-post-jar">
+		<java classname="org.pill.repository.local.Build">
+			<classpath>
+				<pathelement location="build/classes"/>
+				<fileset dir="../lib/guice" includes="*.jar"/>
+				<fileset dir="../lib/flyway" includes="*.jar"/>
+				<fileset dir="../lib/querydsl-sql" includes="*.jar"/>
+				<fileset dir="../lib/h2" includes="*.jar"/>
+				<fileset dir="../lib/slf4j" includes="*.jar"/>
+				<fileset dir="../dist" includes="pill.core.jar"/>
+				 Find logback.xml in src but don't package it
+				<pathelement location="src"/>
+			</classpath>
+		</java>
+	</target>-->
+
+	<!--	<taskdef resource="testngtasks" classpath="lib/TestNG-6.3.2/testng-6.3.2beta.jar"/>
+
+	<target name="-do-test-run">
+		<testng verbose="2">
+			<classpath path="${run.test.classpath}"/>
+			<classfileset dir="." includes="**/*Test.class"/>
+		</testng>
+	</target>
+
+	<target name="-do-test-run-single">
+		<fail unless="test.includes">Must select some files in the IDE or set test.includes</fail>
+		<testng verbose="2">
+			<classpath path="${run.test.classpath}"/>
+			<classfileset dir="." includes="${test.includes}"/>
+		</testng>
+	</target>
+
+	<target name="-debug-start-debuggee-test">
+		<fail unless="test.class">Must select one file in the IDE or set test.class</fail>
+		<pathconvert property="test.class.path">
+			<path path="${test.class}"/>
+			<regexpmapper from="\.(.*)" to="${file.separator}"/>
+		</pathconvert>
+		<echo>1: ${test.class}</echo>
+		<echo>2: ${test.class.path}</echo>
+		<testng verbose="2">
+			<classfileset dir="." includes="${test.class.path}"/>
+		</testng>
+	</target>-->
+    <!--
+
+    There exist several targets which are by default empty and which can be
+    used for execution of your tasks. These targets are usually executed
+    before and after some main targets. They are:
+
+      -pre-init:                 called before initialization of project properties
+      -post-init:                called after initialization of project properties
+      -pre-compile:              called before javac compilation
+      -post-compile:             called after javac compilation
+      -pre-compile-single:       called before javac compilation of single file
+      -post-compile-single:      called after javac compilation of single file
+      -pre-compile-test:         called before javac compilation of JUnit tests
+      -post-compile-test:        called after javac compilation of JUnit tests
+      -pre-compile-test-single:  called before javac compilation of single JUnit test
+      -post-compile-test-single: called after javac compilation of single JUunit test
+      -pre-jar:                  called before JAR building
+      -post-jar:                 called after JAR building
+      -post-clean:               called after cleaning build products
+
+    (Targets beginning with '-' are not intended to be called on their own.)
+
+    Example of inserting an obfuscator after compilation could look like this:
+
+        <target name="-post-compile">
+            <obfuscate>
+                <fileset dir="${build.classes.dir}"/>
+            </obfuscate>
+        </target>
+
+    For list of available properties check the imported
+    nbproject/build-impl.xml file.
+
+
+    Another way to customize the build is by overriding existing main targets.
+    The targets of interest are:
+
+      -init-macrodef-javac:     defines macro for javac compilation
+      -init-macrodef-junit:     defines macro for junit execution
+      -init-macrodef-debug:     defines macro for class debugging
+      -init-macrodef-java:      defines macro for class execution
+      -do-jar-with-manifest:    JAR building (if you are using a manifest)
+      -do-jar-without-manifest: JAR building (if you are not using a manifest)
+      run:                      execution of project
+      -javadoc-build:           Javadoc generation
+      test-report:              JUnit report generation
+
+    An example of overriding the target for project execution could look like this:
+
+        <target name="run" depends="pill.core-impl.jar">
+            <exec dir="bin" executable="launcher.exe">
+                <arg file="${dist.jar}"/>
+            </exec>
+        </target>
+
+    Notice that the overridden target depends on the jar target and not only on
+    the compile target as the regular run target does. Again, for a list of available
+    properties which you can use, check the target you are overriding in the
+    nbproject/build-impl.xml file.
+
+	-->
+</project>
