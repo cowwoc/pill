@@ -48,14 +48,14 @@ public class ReleaseFileSystemProvider extends FileSystemProvider
 {
 	private static final String packageName = LocalRepository.class.getPackage().getName();
 	private final Map<URI, ReleaseFileSystem> cache = new ConcurrentHashMap<>();
-	private final RepositorySpi localRepository;
+	private final Repository localRepository;
 
 	/**
 	 * Creates a new ReleaseFileSystemProvider without Guice.
 	 */
 	public ReleaseFileSystemProvider()
 	{
-		this.localRepository = LocalRepository.getInstance();
+		this.localRepository = ClassloaderBridge.getInstance().getLocalRepository();
 	}
 
 	@Override

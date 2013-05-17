@@ -18,9 +18,9 @@ import java.util.Set;
  */
 public class LocalClassLoader extends AppendableClassLoader
 {
-	private final Set<String> allowedPackages = new HashSet<>();
-	private final Set<String> allowedResources = new HashSet<>();
-	private final Set<URL> excludeLocalResources = new HashSet<>();
+	private final Set<String> inheritedClasses = new HashSet<>();
+	private final Set<String> inheritedResources = new HashSet<>();
+	private final Set<URL> hiddenLocalResources = new HashSet<>();
 
 	/**
 	 * Creates a new LocalClassLoader.
@@ -40,15 +40,15 @@ public class LocalClassLoader extends AppendableClassLoader
 	}
 
 	/**
-	 * Returns the package prefixes (e.g. {@code "java.lang."}) that may be loaded from the parent
+	 * Returns the class prefixes (e.g. {@code "java.lang."}) that may be loaded from the parent
 	 * classloader.
 	 * <p/>
 	 * @return a mutable Set
 	 */
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Set<String> allowedPackages()
+	public Set<String> inheritedClasses()
 	{
-		return allowedPackages;
+		return inheritedClasses;
 	}
 
 	/**
@@ -58,29 +58,29 @@ public class LocalClassLoader extends AppendableClassLoader
 	 * @return a mutable Set
 	 */
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Set<String> allowedResources()
+	public Set<String> inheritedResources()
 	{
-		return allowedResources;
+		return inheritedResources;
 	}
 
 	/**
-	 * Returns the URL prefixes (e.g. {@code "file:///java/lang/"}) of resources that should be
-	 * suppressed if returned by the current classloader. Note this does not affect results returned
-	 * by the parent classloader.
+	 * Returns the URL prefixes (e.g. {@code "file:///java/lang/"}) of resources that should be hidden
+	 * from the current classloader. Note this does not affect results returned by the parent
+	 * classloader.
 	 * <p/>
 	 * @return a mutable Set
 	 */
 	@SuppressWarnings("ReturnOfCollectionOrArrayField")
-	public Set<URL> excludeLocalResources()
+	public Set<URL> hiddenLocalResources()
 	{
-		return excludeLocalResources;
+		return hiddenLocalResources;
 	}
 
 	@Override
 	public Enumeration<URL> getResources(String name) throws IOException
 	{
 		// Delegate to the parent classloader if allowed
-		for (String prefix : allowedResources)
+		for (String prefix : inheritedResources)
 		{
 			if (name.startsWith(prefix))
 				return filterResources(super.getResources(name));
@@ -96,38 +96,26 @@ public class LocalClassLoader extends AppendableClassLoader
 	 */
 	private Enumeration<URL> filterResources(Enumeration<URL> resources)
 	{
-		if (!resources.hasMoreElements() || excludeLocalResources.isEmpty())
+		if (!resources.hasMoreElements() || hiddenLocalResources.isEmpty())
 			return resources;
 		List<URL> result = new ArrayList<>();
 		while (resources.hasMoreElements())
 		{
 			URL resource = resources.nextElement();
 			String resourceAsString = resource.toString();
-			boolean suppress = false;
-			for (URL prefix : excludeLocalResources)
+			boolean resourceIsHidden = false;
+			for (URL prefix : hiddenLocalResources)
 			{
 				if (resourceAsString.startsWith(prefix.toString()))
 				{
-					suppress = true;
+					resourceIsHidden = true;
 					break;
 				}
 			}
-			if (!suppress)
+			if (!resourceIsHidden)
 				result.add(resource);
 		}
 		return Iterators.asEnumeration(result.iterator());
-	}
-
-	@Override
-	public URL getResource(String name)
-	{
-		// Delegate to the parent classloader if allowed
-		for (String prefix : allowedResources)
-		{
-			if (name.startsWith(prefix))
-				return filterResource(super.getResource(name));
-		}
-		return filterResource(findResource(name));
 	}
 
 	/**
@@ -138,10 +126,10 @@ public class LocalClassLoader extends AppendableClassLoader
 	 */
 	private URL filterResource(URL resource)
 	{
-		if (resource != null && !excludeLocalResources.isEmpty())
+		if (resource != null && !hiddenLocalResources.isEmpty())
 		{
 			String resultAsString = resource.toString();
-			for (URL prefix : excludeLocalResources)
+			for (URL prefix : hiddenLocalResources)
 			{
 				if (resultAsString.startsWith(prefix.toString()))
 					return null;
@@ -151,10 +139,22 @@ public class LocalClassLoader extends AppendableClassLoader
 	}
 
 	@Override
+	public URL getResource(String name)
+	{
+		// Delegate to the parent classloader if allowed
+		for (String prefix : inheritedResources)
+		{
+			if (name.startsWith(prefix))
+				return filterResource(super.getResource(name));
+		}
+		return filterResource(findResource(name));
+	}
+
+	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException
 	{
 		// Delegate to the parent classloader if allowed
-		for (String prefix : allowedPackages)
+		for (String prefix : inheritedClasses)
 		{
 			if (name.startsWith(prefix))
 				return super.loadClass(name, resolve);

@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.jar.Manifest;
+import org.pill.repository.Repository;
+import org.pill.repository.local.ClassloaderBridge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,8 +84,9 @@ public class ScriptBuilder
 		Path logbackSource = sourcePath.resolve("logback.xml");
 
 		ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
-		Collection<String> javaCorePackages = ImmutableList.of("sun.", "java.", "javax.", "org.omg.",
-			"org.w3c.dom.", "org.xml.sax.");
+		Collection<String> systemClasses = ImmutableList.of("sun.", "java.", "javax.", "org.omg.",
+			"org.w3c.dom.", "org.xml.sax.", ClassloaderBridge.class.getName(), Repository.class.getName(),
+			Release.class.getName());
 
 		if (Files.exists(logbackSource))
 		{
@@ -99,22 +102,18 @@ public class ScriptBuilder
 			for (Path path : pill.getClassPath())
 				pillClassLoader.addURL(path.toUri().toURL());
 			Path rootPath = Modules.getRootPath(Pill.class);
-			pillClassLoader.excludeLocalResources().add(rootPath.resolve("logback.xml").toUri().toURL());
-			pillClassLoader.allowedPackages().addAll(javaCorePackages);
-
-//			Enumeration<URL> en = pillClassLoader.getResources("logback.xml");
-//			while (en.hasMoreElements())
-//				System.out.println("pillClassLoader.found: " + en.nextElement());
-
+			pillClassLoader.hiddenLocalResources().add(rootPath.resolve("logback.xml").toUri().toURL());
+			pillClassLoader.inheritedClasses().addAll(systemClasses);
 			parentClassLoader = pillClassLoader;
 		}
 		LocalClassLoader scriptClassLoader = new LocalClassLoader(parentClassLoader);
 		scriptClassLoader.addURL(targetPath.toUri().toURL());
-		scriptClassLoader.allowedPackages().addAll(javaCorePackages);
-		scriptClassLoader.allowedPackages().add("org.pill.");
-		scriptClassLoader.allowedResources().add("");
+		scriptClassLoader.inheritedClasses().addAll(systemClasses);
+		scriptClassLoader.inheritedClasses().add("org.pill.");
+		scriptClassLoader.inheritedResources().add("");
 
 		Thread.currentThread().setContextClassLoader(scriptClassLoader);
+		ClassloaderBridge.create(scriptClassLoader);
 		Method mainMethod;
 		try
 		{

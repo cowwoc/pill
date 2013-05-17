@@ -1,7 +1,6 @@
 package org.pill.repository;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.Set;
 import org.pill.Dependency;

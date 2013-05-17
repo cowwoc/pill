@@ -44,8 +44,10 @@ import org.pill.DependencyType;
 import org.pill.EntityExistsException;
 import org.pill.EntityNotFoundException;
 import org.pill.Module;
+import org.pill.Module;
 import org.pill.Release;
 import org.pill.ReleaseBuilder;
+import org.pill.ReleaseImpl;
 import org.pill.repository.RepositorySpi;
 import org.pill.repository.local.queries.QDependencyTypes;
 import org.pill.repository.local.queries.QModules;
@@ -235,10 +237,8 @@ public final class LocalRepository implements RepositorySpi
 		private final Session session;
 
 		@Inject
-		public InsertRelease(@Named("path") Path path,
-			@Named("module") Module module,
-			@Named("version") String version,
-			@Named("dependencies") Set<Dependency> dependencies,
+		public InsertRelease(@Named("path") Path path, @Named("module") Module module,
+			@Named("version") String version, @Named("dependencies") Set<Dependency> dependencies,
 			Session session)
 		{
 			this.path = path;
@@ -314,7 +314,7 @@ public final class LocalRepository implements RepositorySpi
 						throw new EntityExistsException(module.getName() + " " + version, e);
 					throw new IOException(e);
 				}
-				return new Release(toUri(releaseId), module, version, path.getFileName().toString(),
+				return new ReleaseImpl(toUri(releaseId), module, version, path.getFileName().toString(),
 					dependencies);
 			}
 			finally
@@ -626,7 +626,7 @@ public final class LocalRepository implements RepositorySpi
 				String version = row.get(releases.version);
 				String filename = row.get(releases.path);
 				Set<Dependency> dependencies = getDependencies(id);
-				return new Release(uri, module, version, filename, dependencies);
+				return new ReleaseImpl(uri, module, version, filename, dependencies);
 			}
 			finally
 			{

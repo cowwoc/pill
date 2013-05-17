@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The entry point to the Pill library.
@@ -19,8 +17,6 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class Pill
 {
-	private final Logger log = LoggerFactory.getLogger(Pill.class);
-
 	/**
 	 * @return a path containing the Pill classes and their dependencies
 	 * @throws IOException if an I/O error occurs while resolving the classpath
@@ -41,7 +37,9 @@ public class Pill
 			rootPath.resolve("../../lib/guice/guice-3.0.jar"),
 			rootPath.resolve("../../lib/guice/guice-servlet-3.0.jar"),
 			rootPath.resolve("../../lib/h2/h2-1.3.171.jar"),
-			rootPath.resolve("../../lib/flyway/flyway-core-2.1.1.jar"));
+			rootPath.resolve("../../lib/flyway/flyway-core-2.1.1.jar"),
+			rootPath.resolve("../../lib/JavaCompiler/tools.jar"),
+			rootPath.resolve("../../lib/joda-time/joda-time-2.2.jar"));
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package org.pill.repository;
 
+import org.pill.Module;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;

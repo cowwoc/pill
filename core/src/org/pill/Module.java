@@ -1,7 +1,6 @@
 package org.pill;
 
 import com.google.common.base.Preconditions;
-import java.net.URI;
 
 /**
  * A software module.
@@ -41,13 +40,13 @@ public final class Module
 		if (!(o instanceof Module))
 			return false;
 		Module other = (Module) o;
-		return super.equals(o) && name.equals(other.getName());
+		return name.equals(other.getName());
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return super.hashCode() + 31 * this.name.hashCode();
+		return this.name.hashCode();
 	}
 
 	@Override
