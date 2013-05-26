@@ -56,7 +56,7 @@ public class ScriptBuilder
 	public ScriptBuilder classPath(List<Path> classPath)
 	{
 		Preconditions.checkNotNull(classPath, "classPath may not be null");
-		for (Path path : classPath)
+		for (Path path: classPath)
 		{
 			if (!Files.exists(path))
 			{
@@ -99,10 +99,9 @@ public class ScriptBuilder
 			pillClassLoader.addURL(logbackTarget.getParent().toUri().toURL());
 
 			Pill pill = new Pill();
-			for (Path path : pill.getClassPath())
+			for (Path path: pill.getClassPath())
 				pillClassLoader.addURL(path.toUri().toURL());
-			Path rootPath = Modules.getRootPath(Pill.class);
-			pillClassLoader.hiddenLocalResources().add(rootPath.resolve("logback.xml").toUri().toURL());
+			pillClassLoader.hiddenLocalResources().add(parentClassLoader.getResource("logback.xml"));
 			pillClassLoader.inheritedClasses().addAll(systemClasses);
 			parentClassLoader = pillClassLoader;
 		}
@@ -174,7 +173,7 @@ public class ScriptBuilder
 				String[].class
 			});
 		}
-		catch (ReflectiveOperationException e)
+		catch (NoSuchMethodException e)
 		{
 			throw new IOException("Exception while looking up " + mainClass + ".main(String[]) method", e);
 		}
@@ -210,7 +209,7 @@ public class ScriptBuilder
 		Files.createDirectories(targetPath);
 
 		new JavaCompiler().classPath(classPath).run(sourceFiles, targetPath);
-		for (Path path : resourceFiles)
+		for (Path path: resourceFiles)
 		{
 			Path relativePath = sourcePath.relativize(path);
 			Path targetFile = targetPath.resolve(relativePath);

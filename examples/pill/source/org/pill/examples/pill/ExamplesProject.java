@@ -69,9 +69,9 @@ public class ExamplesProject
 		guavaReleaseUri = localRepository.getRelease(guavaDependency.getUri()).getUri();
 
 		Path projectPath = scriptPath.getParent();
-		Path buildPath = projectPath.resolve("build");
-		Files.createDirectories(buildPath);
-		Path dependenciesPath = buildPath.resolve("dependencies");
+		Path targetPath = projectPath.resolve("target");
+		Files.createDirectories(targetPath);
+		Path dependenciesPath = targetPath.resolve("dependencies");
 		Files.createDirectories(dependenciesPath);
 		Release guavaRelease = localRepository.getRelease(guavaReleaseUri);
 		assert (guavaRelease != null);
@@ -83,20 +83,22 @@ public class ExamplesProject
 		final Path sourcePath = projectPath.resolve("src");
 		Files.walkFileTree(sourcePath, EnumSet.of(FileVisitOption.FOLLOW_LINKS),
 			Integer.MAX_VALUE, new SimpleFileVisitor<Path>()
-		{
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
 			{
-				if (file.toString().endsWith(".java"))
-					sourceFiles.add(file);
-				return FileVisitResult.CONTINUE;
-			}
-		});
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+				{
+					if (file.toString().endsWith(".java"))
+						sourceFiles.add(file);
+					return FileVisitResult.CONTINUE;
+				}
+			});
 
+		Path classesPath = targetPath.resolve("classes");
+		Files.createDirectories(classesPath);
 		JavaCompiler compiler = new JavaCompiler().
 			debug(DebugType.LINES, DebugType.SOURCE, DebugType.VARIABLES).
 			sourcePath(Collections.singletonList(projectPath)).
 			classPath(classpath);
-		compiler.run(sourceFiles, buildPath);
+		compiler.run(sourceFiles, classesPath);
 	}
 }

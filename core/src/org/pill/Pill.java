@@ -3,9 +3,15 @@ package org.pill;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Singleton;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The entry point to the Pill library.
@@ -17,33 +23,78 @@ import java.util.List;
 @Singleton
 public class Pill
 {
+	private List<Path> classpath;
+	private final Logger log = LoggerFactory.getLogger(Pill.class);
+
+	/**
+	 * Returns the classpath associated with the ClassLoader.
+	 * <p/>
+	 * @param classLoader a ClassLoader (null denotes the system ClassLoader)
+	 * @return empty list if an unknown ClassLoader is encountered
+	 * @throws URISyntaxException if an error occurs while converting a URL to a URI
+	 */
+	private List<Path> getClassPath(ClassLoader classLoader) throws URISyntaxException
+	{
+		log.debug("Entering. classLoader: " + classLoader);
+		if (classLoader instanceof URLClassLoader)
+		{
+			URLClassLoader urlClassloader = (URLClassLoader) classLoader;
+			List<Path> result = new ArrayList<>();
+			for (URL url: urlClassloader.getURLs())
+				result.add(Paths.get(url.toURI()));
+			log.debug("Returning {}", result);
+			return result;
+		}
+		if (classLoader == null || classLoader.equals(ClassLoader.getSystemClassLoader()))
+		{
+			List<Path> result = new ArrayList<>();
+			for (String path: System.getProperty("java.class.path").
+				split(System.getProperty("path.separator")))
+			{
+				result.add(Paths.get(path));
+			}
+			log.debug("Returning {}", result);
+			return result;
+		}
+		log.warn("Unknown classloader type: " + classLoader.getClass().getName());
+		List<Path> result = ImmutableList.of();
+		log.debug("Returning {}", result);
+		return result;
+	}
+
 	/**
 	 * @return a path containing the Pill classes and their dependencies
 	 * @throws IOException if an I/O error occurs while resolving the classpath
 	 */
 	public List<Path> getClassPath() throws IOException
 	{
-		Path rootPath = Modules.getRootPath(Pill.class);
-		return ImmutableList.of(rootPath,
-			rootPath.resolve("../../lib/jsr305/jsr305-2.0.1.jar"),
-			rootPath.resolve("../../lib/slf4j/slf4j-api-1.7.5.jar"),
-			rootPath.resolve("../../lib/logback/logback-core-1.0.12.jar"),
-			rootPath.resolve("../../lib/logback/logback-classic-1.0.12.jar"),
-			rootPath.resolve("../../lib/querydsl-sql/querydsl-core-3.1.1.jar"),
-			rootPath.resolve("../../lib/querydsl-sql/querydsl-sql-3.1.1.jar"),
-			rootPath.resolve("../../lib/querydsl-sql/mysema-commons-lang-0.2.4.jar"),
-			rootPath.resolve("../../lib/guava/guava-14.0.1.jar"),
-			rootPath.resolve("../../lib/guice/aopalliance.jar"),
-			rootPath.resolve("../../lib/guice/guice-3.0.jar"),
-			rootPath.resolve("../../lib/guice/guice-servlet-3.0.jar"),
-			rootPath.resolve("../../lib/h2/h2-1.3.171.jar"),
-			rootPath.resolve("../../lib/flyway/flyway-core-2.1.1.jar"),
-			rootPath.resolve("../../lib/JavaCompiler/tools.jar"),
-			rootPath.resolve("../../lib/joda-time/joda-time-2.2.jar"));
+		log.debug("Entering");
+		if (classpath == null)
+		{
+			List<Path> result = new ArrayList<>();
+			ClassLoader cl = Thread.currentThread().getContextClassLoader();
+			try
+			{
+				while (cl != null)
+				{
+					result.addAll(0, getClassPath(cl));
+					cl = cl.getParent();
+				}
+			}
+			catch (URISyntaxException e)
+			{
+				throw new IOException(e);
+			}
+			this.classpath = result;
+		}
+		log.debug("Returning {}", classpath);
+		return classpath;
 	}
 
 	/**
 	 * @param args the command line arguments
+	 * @throws IOException if an I/O error occurs while building the project
+	 * @throws CompilationException if an error occurs while compiling the project
 	 */
 	public static void main(String[] args) throws IOException, CompilationException
 	{

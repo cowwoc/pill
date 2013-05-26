@@ -27,10 +27,10 @@ public final class Modules
 	 */
 	public static Path getRootPath(Class<?> clazz) throws IOException
 	{
-		URL currentClass = clazz.getClassLoader().getResource(clazz.getName().replace('.', '/')
+		URL classUrl = clazz.getClassLoader().getResource(clazz.getName().replace('.', '/')
 			+ ".class");
 		// REFERENCE: http://stackoverflow.com/questions/8014099/how-do-i-convert-a-jarfile-uri-to-the-path-of-jar-file/8014184#8014184
-		URLConnection connection = currentClass.openConnection();
+		URLConnection connection = classUrl.openConnection();
 		Path result;
 		try
 		{
@@ -42,7 +42,7 @@ public final class Modules
 			}
 			else
 			{
-				result = Paths.get(currentClass.toURI());
+				result = Paths.get(classUrl.toURI());
 				String packageName = clazz.getPackage().getName();
 				int packageSize;
 				if (packageName.isEmpty())

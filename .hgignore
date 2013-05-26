@@ -4,11 +4,13 @@ core/build/
 core/database/build/
 core/database/dist/
 core/dist/
-examples/pill/build/
+examples/pill/target/
 core/lib/
 examples/dist/
 examples/pill/lib/
 examples/pill/dist/
-examples/build/
+examples/target/
 */nbproject/private/*
 examples/pill/target/
+examples/*.h2.db
+examples/pill/*.h2.db
